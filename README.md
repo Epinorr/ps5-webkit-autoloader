@@ -6,7 +6,7 @@
 <p align="center">Automatically loads the WebKit exploit and your elf payloads.<br>Supports firmwares <b>1.00&ndash;5.50</b> and <b>9.00&ndash;12.00</b>.</p>
 
 > [!NOTE]
-> This is just and Edit of the original sorce. just added some BG and css :)
+> This is just an Edit of the original sorce. just added some BG and css :)
 ## Credits
 
 * **[idlesauce](https://github.com/idlesauce)** & contributors — [umtx2](https://github.com/idlesauce/umtx2), the WebKit/kernel exploit chain used for firmware 1.00–5.50.
