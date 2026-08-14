@@ -1,48 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <title>Hoshmand Game WebKit</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Hoshmand Game WebKit v[[VERSION_PLACEHOLDER]] by Epinor (built [[BUILD_TIME_PLACEHOLDER]])</title>
 </head>
 
 <body>
-
-  <!--
-    Background is intentionally NOT referenced by CSS.
-    It is requested only after the page's normal load event, so the
-    background can never delay the initial app/exploit startup.
-  -->
+  <!-- Background is requested only after the normal page load event. -->
   <div id="pageBackground" aria-hidden="true"></div>
 
-  <div id="splash">
-    <img class="logo" src="logo.svg" alt="">
+  <div id="splash" aria-hidden="false">
+    <img class="logo" src="logo.svg" alt="WebKit Autoloader" />
     <h1>Hoshmand Game WebKit</h1>
   </div>
 
-  <main id="loader">
-    <iframe id="exploit" hidden></iframe>
+  <!--
+    IMPORTANT:
+    Keep the exploit iframe OUTSIDE #loader.
+    #loader is hidden until revealExploit() runs; the exploit must be able
+    to navigate/execute independently of that visual UI state.
+  -->
+  <iframe id="exploit" title="exploit" hidden></iframe>
 
+  <main id="loader" hidden>
     <div id="logWrapper">
       <div id="logContainer"></div>
     </div>
 
     <div id="progressContainer">
       <div id="progressBar"></div>
-      <div id="progressLabel"></div>
+      <div id="progressLabel">Loading...</div>
     </div>
   </main>
 
   <footer id="footer">
-    Hoshmand Game WebKit
+    Hoshmand Game WebKit v[[VERSION_PLACEHOLDER]] by Epinor (built [[BUILD_TIME_PLACEHOLDER]])<br />
   </footer>
 
   <!--
-    This only schedules the background request.
-    It does NOT wait for the image and does NOT touch app.js/exploit logic.
+    Only the background loader is added here.
+    It does not alter app.js, the exploit URL, timing, sessionStorage,
+    iframe, or progress logic.
   -->
   <script>
     window.addEventListener("load", function () {
