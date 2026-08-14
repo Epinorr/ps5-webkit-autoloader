@@ -10,26 +10,60 @@
 </head>
 
 <body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <div class="grid-overlay" aria-hidden="true"></div>
+
   <div id="splash" aria-hidden="false">
-    <img class="logo" src="logo.svg" alt="WebKit Autoloader" />
+    <div class="splash-glow" aria-hidden="true"></div>
+    <div class="splash-logo-wrap">
+      <img class="logo" src="logo.svg" alt="WebKit Autoloader" />
+    </div>
     <h1>WebKit Autoloader</h1>
+    <div class="splash-line" aria-hidden="true"></div>
+    <p class="splash-subtitle">Initializing secure payload loader</p>
   </div>
 
   <iframe id="exploit" title="exploit" hidden></iframe>
 
-
   <main id="loader" hidden>
-    <div id="logWrapper">
-      <div id="logContainer"></div>
-    </div>
+    <section class="loader-card">
+      <div class="loader-header">
+        <div class="brand-mark">
+          <img src="logo.svg" alt="" />
+        </div>
+        <div class="brand-copy">
+          <span class="eyebrow">PLAYSTATION 5</span>
+          <h1>WebKit Autoloader</h1>
+        </div>
+        <div class="status-dot" aria-hidden="true"></div>
+      </div>
 
-    <div id="progressContainer">
-      <div id="progressBar"></div>
-      <div id="progressLabel">Loading...</div>
-    </div>
+      <div id="logWrapper">
+        <div class="log-header">
+          <span>CONSOLE OUTPUT</span>
+          <span class="log-live">LIVE</span>
+        </div>
+        <div id="logContainer"></div>
+      </div>
+
+      <div id="progressContainer">
+        <div class="progress-meta">
+          <span id="progressLabel">Loading...</span>
+          <span class="progress-caption">AUTOMATED</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressBar"></div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer id="footer">WebKit Autoloader v[[VERSION_PLACEHOLDER]] by PLK (built [[BUILD_TIME_PLACEHOLDER]])<br />This project is free and open source: github.com/itsPLK/ps5-webkit-autoloader</footer>
+  <footer id="footer">
+    <span>WebKit Autoloader v[[VERSION_PLACEHOLDER]] by PLK</span>
+    <span class="footer-separator">•</span>
+    <span>built [[BUILD_TIME_PLACEHOLDER]]</span>
+  </footer>
 
   <script src="app.js"></script>
 </body>
