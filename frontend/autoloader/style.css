@@ -7,16 +7,42 @@
 
 html,
 body {
+  width: 100%;
   height: 100%;
 }
 
+html {
+  background: #05070d;
+}
+
 body {
+  position: relative;
   font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  background: #0f172a;
-  background: -webkit-linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
   color: #e2e8f0;
   min-height: 100%;
   overflow: hidden;
+
+  /* Place background.png in frontend/autoloader/ */
+  background-color: #05070d;
+  background-image: url("background.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+}
+
+/* Very subtle readability overlay; the background remains clearly visible. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(3, 7, 14, 0.14) 0%,
+    rgba(3, 7, 14, 0.02) 55%,
+    rgba(3, 7, 14, 0.08) 100%
+  );
 }
 
 #footer {
@@ -25,16 +51,15 @@ body {
   left: 50%;
   -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
-  font-size: 0.75rem;
-  color: #4b5563;
+  font-size: 0.68rem;
+  color: rgba(224, 234, 249, 0.62);
   line-height: 1.5;
   text-align: center;
   z-index: 20;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
 
-
-
-/* Splash screen: shown before the loader, animate out once at startup */
+/* Splash is only visual; app.js continues to control its visibility. */
 #splash {
   position: fixed;
   top: 0;
@@ -55,8 +80,7 @@ body {
   -webkit-box-pack: center;
   -webkit-justify-content: center;
   justify-content: center;
-  background: #0f172a;
-  background: -webkit-linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
+  background: rgba(4, 8, 15, 0.92);
   opacity: 1;
   -webkit-transition: opacity 0.45s ease-in, visibility 0s linear 0.45s;
   transition: opacity 0.45s ease-in, visibility 0s linear 0.45s;
@@ -82,6 +106,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.02em;
   color: #e2e8f0;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7);
   -webkit-animation: splash-in 0.8s ease-out 0.15s both;
   animation: splash-in 0.8s ease-out 0.15s both;
 }
@@ -102,111 +127,171 @@ body {
 @keyframes splash-in {
   from {
     opacity: 0;
-    -webkit-transform: translateY(10px);
     transform: translateY(10px);
   }
   to {
     opacity: 1;
-    -webkit-transform: translateY(0);
     transform: translateY(0);
   }
 }
 
-
-
-/* Loader UI: centered; the bottom-right iframe just floats over it */
+/*
+ * IMPORTANT:
+ * #loader is transparent. This lets body/background.png remain visible.
+ * app.js does not depend on the visual properties here.
+ */
 #loader {
   position: relative;
   z-index: 10;
+  width: 100%;
   height: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  flex-direction: column;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  justify-content: center;
-  background: #0f172a;
-  background: -webkit-linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
+  display: block;
+  background: transparent;
 }
 
 main[hidden] {
   display: none !important;
 }
 
+/*
+ * LOG PANEL
+ * Bottom-left, translucent, compact.
+ */
 #logWrapper {
-  width: 82%;
-  height: 72%;
-  max-width: 1220px;
-  background: #05070d;
-  border: 1px solid #1e3a5f;
-  border-radius: 10px;
+  position: absolute;
+  left: 2.2vw;
+  bottom: 6.35rem;
+  width: min(48vw, 760px);
+  height: min(43vh, 390px);
+  max-width: 760px;
+
+  background: rgba(3, 8, 17, 0.48);
+  border: 1px solid rgba(147, 190, 241, 0.18);
+  border-radius: 12px;
+
   overflow-y: auto;
+  overflow-x: hidden;
+
   font-family: "SFMono-Regular", Menlo, Monaco, "Cascadia Mono", monospace;
-  font-size: 1.05rem;
-  line-height: 1.6;
-  padding: 1rem 1.25rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  padding: 0.9rem 1rem;
+
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+
+  -webkit-box-shadow:
+    0 14px 38px rgba(0, 0, 0, 0.30),
+    0 0 0 1px rgba(255, 255, 255, 0.018) inset;
+  box-shadow:
+    0 14px 38px rgba(0, 0, 0, 0.30),
+    0 0 0 1px rgba(255, 255, 255, 0.018) inset;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 178, 220, 0.35) transparent;
+}
+
+#logWrapper::-webkit-scrollbar {
+  width: 5px;
+}
+
+#logWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#logWrapper::-webkit-scrollbar-thumb {
+  background: rgba(140, 178, 220, 0.35);
+  border-radius: 5px;
 }
 
 #logContainer {
-  color: #94a3b8;
+  color: #d0d9e7;
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
 #logContainer .line {
   white-space: pre-wrap;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 #logContainer .info {
-  color: #94a3b8;
+  color: #c1cddd;
 }
 
 #logContainer .success {
-  color: #7df966;
+  color: #82ef9e;
 }
 
 #logContainer .warning {
-  color: #fbbf24;
+  color: #f4c56e;
 }
 
 #logContainer .error {
-  color: #f87171;
+  color: #ff7d86;
 }
 
+/*
+ * PROGRESS PANEL
+ * Directly below the log, same width and same lower-left anchor.
+ */
 #progressContainer {
-  position: relative;
-  width: 82%;
-  max-width: 1220px;
-  height: 3rem;
-  margin-top: 1.75rem;
-  background: #1b2436;
-  border: 1px solid #2c3e5a;
+  position: absolute;
+  left: 2.2vw;
+  bottom: 2.1rem;
+  width: min(48vw, 760px);
+  max-width: 760px;
+  height: 2.55rem;
+  margin-top: 0;
+
+  background: rgba(3, 8, 17, 0.46);
+  border: 1px solid rgba(147, 190, 241, 0.18);
   border-radius: 10px;
   overflow: hidden;
+
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+
+  -webkit-box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.26),
+    0 0 0 1px rgba(255, 255, 255, 0.018) inset;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.26),
+    0 0 0 1px rgba(255, 255, 255, 0.018) inset;
 }
 
+/*
+ * app.js controls this element with transform: scaleX(...).
+ * Keep that behavior intact.
+ */
 #progressBar {
   position: absolute;
   top: 0;
   left: 0;
   height: 100%;
   width: 100%;
-  background: #38bdf8;
-  background: -webkit-linear-gradient(90deg, #2563eb 0%, #38bdf8 100%);
+
+  background: rgba(45, 126, 236, 0.62);
+  background: -webkit-linear-gradient(
+    90deg,
+    rgba(37, 99, 235, 0.72) 0%,
+    rgba(56, 189, 248, 0.70) 100%
+  );
+  background: linear-gradient(
+    90deg,
+    rgba(37, 99, 235, 0.72) 0%,
+    rgba(56, 189, 248, 0.70) 100%
+  );
+
   -webkit-transform: scaleX(0);
   transform: scaleX(0);
   -webkit-transform-origin: left center;
   transform-origin: left center;
   -webkit-transition: -webkit-transform 0.5s ease-in-out;
   transition: transform 0.5s ease-in-out;
+
+  -webkit-box-shadow: 0 0 18px rgba(56, 189, 248, 0.25);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.25);
 }
 
 #progressLabel {
@@ -215,19 +300,71 @@ main[hidden] {
   left: 0;
   width: 100%;
   height: 100%;
+
   display: -webkit-box;
   display: -webkit-flex;
   display: flex;
   -webkit-box-align: center;
   -webkit-align-items: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  justify-content: center;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+
+  padding: 0 0.85rem;
+
   color: #fff;
-  font-size: 1rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
   z-index: 1;
   pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  #logWrapper,
+  #progressContainer {
+    left: 2vw;
+    width: min(62vw, 650px);
+  }
+
+  #logWrapper {
+    height: 40vh;
+  }
+}
+
+@media (max-width: 650px) {
+  #logWrapper {
+    left: 2vw;
+    bottom: 5.65rem;
+    width: 70vw;
+    height: 38vh;
+    font-size: 0.72rem;
+  }
+
+  #progressContainer {
+    left: 2vw;
+    bottom: 2rem;
+    width: 70vw;
+  }
+
+  #splash .logo {
+    width: 8rem;
+    height: 8rem;
+  }
+
+  #splash h1 {
+    font-size: 1.8rem;
+  }
+
+  #footer {
+    font-size: 0.55rem;
+    width: 94%;
+  }
+}
+
+@media (max-height: 600px) {
+  #logWrapper {
+    height: 37vh;
+  }
 }
