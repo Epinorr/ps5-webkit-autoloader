@@ -24,39 +24,33 @@ body {
   background: #05070d;
 }
 
-/*
- * Background layer.
- * IMPORTANT: there is NO url() here.
- * The image is assigned by index.html only after window.load.
- */
+/* Background is not requested by CSS. It is assigned later by index.html. */
 #pageBackground {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  background-color: #05070d;
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
-  background-color: #05070d;
   opacity: 0;
-  -webkit-transition: opacity 0.35s ease;
-  transition: opacity 0.35s ease;
+  transition: opacity .35s ease;
 }
 
 #pageBackground.loaded {
   opacity: 1;
 }
 
-/* Very subtle readability layer, independent of the image request. */
 #pageBackground::after {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(3, 7, 14, 0.14) 0%,
-    rgba(3, 7, 14, 0.02) 55%,
-    rgba(3, 7, 14, 0.08) 100%
+    rgba(3, 7, 14, .14) 0%,
+    rgba(3, 7, 14, .02) 55%,
+    rgba(3, 7, 14, .08) 100%
   );
 }
 
@@ -66,14 +60,13 @@ body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  color: rgba(224, 234, 249, 0.62);
-  font-size: 0.68rem;
+  font-size: .68rem;
+  color: rgba(224,234,249,.62);
   line-height: 1.5;
   text-align: center;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 4px rgba(0,0,0,.8);
 }
 
-/* Splash */
 #splash {
   position: fixed;
   inset: 0;
@@ -82,50 +75,39 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(4, 8, 15, 0.94);
+  background: rgba(4,8,15,.94);
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.45s ease-in, visibility 0s linear 0.45s;
+  transition: opacity .45s ease-in, visibility 0s linear .45s;
 }
 
 #splash.hide {
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.45s ease-in, visibility 0s linear 0.45s;
+  transition: opacity .45s ease-in, visibility 0s linear .45s;
 }
 
 #splash .logo {
   width: 11rem;
   height: 11rem;
-  animation: splash-in 0.8s ease-out both;
+  animation: splash-in .8s ease-out both;
 }
 
 #splash h1 {
   margin-top: 1.75rem;
   font-size: 2.5rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: .02em;
   color: #e2e8f0;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7);
-  animation: splash-in 0.8s ease-out 0.15s both;
+  text-shadow: 0 2px 14px rgba(0,0,0,.7);
+  animation: splash-in .8s ease-out .15s both;
 }
 
 @keyframes splash-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/*
- * Transparent loader layer.
- * No exploit/application logic is changed here.
- */
 #loader {
   position: relative;
   z-index: 10;
@@ -139,7 +121,6 @@ main[hidden] {
   display: none !important;
 }
 
-/* Console: lower-left, translucent */
 #logWrapper {
   position: absolute;
   left: 2.2vw;
@@ -147,42 +128,23 @@ main[hidden] {
   width: min(48vw, 760px);
   height: min(43vh, 390px);
   max-width: 760px;
-
-  padding: 0.9rem 1rem;
+  padding: .9rem 1rem;
   overflow-y: auto;
   overflow-x: hidden;
-
-  background: rgba(3, 8, 17, 0.48);
-  border: 1px solid rgba(147, 190, 241, 0.18);
+  background: rgba(3,8,17,.48);
+  border: 1px solid rgba(147,190,241,.18);
   border-radius: 12px;
-
-  font-family: "SFMono-Regular", Menlo, Monaco, "Cascadia Mono", monospace;
-  font-size: 0.86rem;
+  font-family: "SFMono-Regular",Menlo,Monaco,"Cascadia Mono",monospace;
+  font-size: .86rem;
   line-height: 1.55;
-
   backdrop-filter: blur(7px);
   -webkit-backdrop-filter: blur(7px);
-
-  box-shadow:
-    0 14px 38px rgba(0, 0, 0, 0.30),
-    0 0 0 1px rgba(255, 255, 255, 0.018) inset;
-
-  scrollbar-width: thin;
-  scrollbar-color: rgba(140, 178, 220, 0.35) transparent;
+  box-shadow: 0 14px 38px rgba(0,0,0,.30),0 0 0 1px rgba(255,255,255,.018) inset;
 }
 
-#logWrapper::-webkit-scrollbar {
-  width: 5px;
-}
-
-#logWrapper::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-#logWrapper::-webkit-scrollbar-thumb {
-  background: rgba(140, 178, 220, 0.35);
-  border-radius: 5px;
-}
+#logWrapper::-webkit-scrollbar { width: 5px; }
+#logWrapper::-webkit-scrollbar-track { background: transparent; }
+#logWrapper::-webkit-scrollbar-thumb { background: rgba(140,178,220,.35); border-radius: 5px; }
 
 #logContainer {
   color: #d0d9e7;
@@ -190,28 +152,12 @@ main[hidden] {
   word-break: break-word;
 }
 
-#logContainer .line {
-  white-space: pre-wrap;
-  margin-bottom: 0.2rem;
-}
+#logContainer .line { white-space: pre-wrap; margin-bottom: .2rem; }
+#logContainer .info { color: #c1cddd; }
+#logContainer .success { color: #82ef9e; }
+#logContainer .warning { color: #f4c56e; }
+#logContainer .error { color: #ff7d86; }
 
-#logContainer .info {
-  color: #c1cddd;
-}
-
-#logContainer .success {
-  color: #82ef9e;
-}
-
-#logContainer .warning {
-  color: #f4c56e;
-}
-
-#logContainer .error {
-  color: #ff7d86;
-}
-
-/* Progress: lower-left, directly below console */
 #progressContainer {
   position: absolute;
   left: 2.2vw;
@@ -219,36 +165,25 @@ main[hidden] {
   width: min(48vw, 760px);
   max-width: 760px;
   height: 2.55rem;
-
-  background: rgba(3, 8, 17, 0.46);
-  border: 1px solid rgba(147, 190, 241, 0.18);
+  background: rgba(3,8,17,.46);
+  border: 1px solid rgba(147,190,241,.18);
   border-radius: 10px;
   overflow: hidden;
-
   backdrop-filter: blur(7px);
   -webkit-backdrop-filter: blur(7px);
-
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.26),
-    0 0 0 1px rgba(255, 255, 255, 0.018) inset;
+  box-shadow: 0 10px 30px rgba(0,0,0,.26),0 0 0 1px rgba(255,255,255,.018) inset;
 }
 
 #progressBar {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
   height: 100%;
-
-  background: linear-gradient(
-    90deg,
-    rgba(37, 99, 235, 0.72),
-    rgba(56, 189, 248, 0.70)
-  );
-
+  width: 100%;
+  background: linear-gradient(90deg,rgba(37,99,235,.72),rgba(56,189,248,.70));
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform 0.5s ease-in-out;
+  transition: transform .5s ease-in-out;
 }
 
 #progressLabel {
@@ -256,67 +191,33 @@ main[hidden] {
   top: 0;
   left: 0;
   z-index: 1;
-
   width: 100%;
   height: 100%;
-
   display: flex;
   align-items: center;
   justify-content: flex-start;
-
-  padding: 0 0.85rem;
-
+  padding: 0 .85rem;
   color: #fff;
-  font-size: 0.82rem;
+  font-size: .82rem;
   font-weight: 600;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 1px 4px rgba(0,0,0,.85);
   pointer-events: none;
 }
 
 @media (max-width: 900px) {
   #logWrapper,
-  #progressContainer {
-    left: 2vw;
-    width: min(62vw, 650px);
-  }
-
-  #logWrapper {
-    height: 40vh;
-  }
+  #progressContainer { left: 2vw; width: min(62vw,650px); }
+  #logWrapper { height: 40vh; }
 }
 
 @media (max-width: 650px) {
-  #logWrapper {
-    left: 2vw;
-    bottom: 5.65rem;
-    width: 70vw;
-    height: 38vh;
-    font-size: 0.72rem;
-  }
-
-  #progressContainer {
-    left: 2vw;
-    bottom: 2rem;
-    width: 70vw;
-  }
-
-  #splash .logo {
-    width: 8rem;
-    height: 8rem;
-  }
-
-  #splash h1 {
-    font-size: 1.8rem;
-  }
-
-  #footer {
-    font-size: 0.55rem;
-    width: 94%;
-  }
+  #logWrapper { left: 2vw; bottom: 5.65rem; width: 70vw; height: 38vh; font-size: .72rem; }
+  #progressContainer { left: 2vw; bottom: 2rem; width: 70vw; }
+  #splash .logo { width: 8rem; height: 8rem; }
+  #splash h1 { font-size: 1.8rem; }
+  #footer { font-size: .55rem; width: 94%; }
 }
 
 @media (max-height: 600px) {
-  #logWrapper {
-    height: 37vh;
-  }
+  #logWrapper { height: 37vh; }
 }

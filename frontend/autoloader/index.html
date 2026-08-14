@@ -10,7 +10,6 @@
 </head>
 
 <body>
-  <!-- Background is requested only after the normal page load event. -->
   <div id="pageBackground" aria-hidden="true"></div>
 
   <div id="splash" aria-hidden="false">
@@ -18,12 +17,7 @@
     <h1>Hoshmand Game WebKit</h1>
   </div>
 
-  <!--
-    IMPORTANT:
-    Keep the exploit iframe OUTSIDE #loader.
-    #loader is hidden until revealExploit() runs; the exploit must be able
-    to navigate/execute independently of that visual UI state.
-  -->
+  <!-- MUST remain outside #loader: this is the exploit iframe. -->
   <iframe id="exploit" title="exploit" hidden></iframe>
 
   <main id="loader" hidden>
@@ -41,28 +35,32 @@
     Hoshmand Game WebKit v[[VERSION_PLACEHOLDER]] by Epinor (built [[BUILD_TIME_PLACEHOLDER]])<br />
   </footer>
 
+  <!-- IMPORTANT: app.js is loaded FIRST. Do not move this below the background loader. -->
+  <script src="app.js"></script>
+
   <!--
-    Only the background loader is added here.
-    It does not alter app.js, the exploit URL, timing, sessionStorage,
-    iframe, or progress logic.
+    Background loader is registered AFTER app.js.
+    The exploit therefore receives the window.load event first.
+    The image request is additionally delayed to keep it out of the
+    critical exploit-start window.
   -->
   <script>
     window.addEventListener("load", function () {
-      var bg = new Image();
+      window.setTimeout(function () {
+        var bg = new Image();
 
-      bg.onload = function () {
-        var layer = document.getElementById("pageBackground");
-        if (layer) {
-          layer.style.backgroundImage = 'url("background.png")';
-          layer.classList.add("loaded");
-        }
-      };
+        bg.onload = function () {
+          var layer = document.getElementById("pageBackground");
+          if (layer) {
+            layer.style.backgroundImage = 'url("background.png")';
+            layer.classList.add("loaded");
+          }
+        };
 
-      bg.src = "background.png";
+        bg.src = "background.png";
+      }, 3000);
     }, false);
   </script>
-
-  <script src="app.js"></script>
 </body>
 
 </html>
