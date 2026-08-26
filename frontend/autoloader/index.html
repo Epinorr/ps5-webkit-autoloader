@@ -6,17 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <title>WebKit Autoloader v[[VERSION_PLACEHOLDER]] by PLK (built [[BUILD_TIME_PLACEHOLDER]])</title>
+  <title>Hoshmand Game WebKit v[[VERSION_PLACEHOLDER]] by Epinor (built [[BUILD_TIME_PLACEHOLDER]])</title>
 </head>
 
 <body>
+  <div id="pageBackground" aria-hidden="true"></div>
+
   <div id="splash" aria-hidden="false">
     <img class="logo" src="logo.svg" alt="WebKit Autoloader" />
-    <h1>WebKit Autoloader</h1>
+    <h1>Hoshmand Game WebKit</h1>
   </div>
 
+  <!-- MUST remain outside #loader: this is the exploit iframe. -->
   <iframe id="exploit" title="exploit" hidden></iframe>
-
 
   <main id="loader" hidden>
     <div id="logWrapper">
@@ -55,9 +57,34 @@
     </div>
   </main>
 
-  <footer id="footer">WebKit Autoloader v[[VERSION_PLACEHOLDER]] by PLK (built [[BUILD_TIME_PLACEHOLDER]])<br />This project is free and open source: github.com/itsPLK/ps5-webkit-autoloader</footer>
+  <footer id="footer">Hoshmand Game WebKit v[[VERSION_PLACEHOLDER]] by Epinor (built [[BUILD_TIME_PLACEHOLDER]])<br />This project is free and open source: github.com/itsPLK/ps5-webkit-autoloader</footer>
 
+  <!-- IMPORTANT: app.js is loaded FIRST. Do not move this below the background loader. -->
   <script src="app.js"></script>
+
+  <!--
+    Background loader is registered AFTER app.js.
+    The exploit therefore receives the window.load event first.
+    The image request is additionally delayed to keep it out of the
+    critical exploit-start window.
+  -->
+  <script>
+    window.addEventListener("load", function () {
+      window.setTimeout(function () {
+        var bg = new Image();
+
+        bg.onload = function () {
+          var layer = document.getElementById("pageBackground");
+          if (layer) {
+            layer.style.backgroundImage = 'url("background.png")';
+            layer.classList.add("loaded");
+          }
+        };
+
+        bg.src = "background.png";
+      }, 3000);
+    }, false);
+  </script>
 </body>
 
 </html>
