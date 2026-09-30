@@ -1,20 +1,10 @@
 (function () {
   'use strict';
 
-  var splashEl = document.getElementById('splash');
   var logContainer = document.getElementById('logContainer');
   var progressBar = document.getElementById('progressBar');
   var progressLabel = document.getElementById('progressLabel');
   var exploitEl = document.getElementById('exploit');
-
-  /* After a WebProcess crash the PS5 browser restores this page together with
-     the iframe at its last URL — the armed exploit URL, which would auto-run
-     the chain again. Blank it as early as possible (the iframe element is
-     already in the DOM at script parse) so the chain only runs after the
-     splash screen. */
-  try {
-    exploitEl.src = 'about:blank';
-  } catch (e) { }
 
   var MAX_LOG_LINES = 80;
   var finished = false;
@@ -31,13 +21,27 @@
   var EXPLOIT_MODE = '[[EXPLOIT_MODE]]';
   if (EXPLOIT_MODE.indexOf('[[') === 0) EXPLOIT_MODE = 'auto';
 
-  /* Firmwares supported by each exploit, keyed on the exact UA firmware
-     string (/PlayStation 5/x.xx/). Keep in sync with the exploits' own lists:
-     relapse's src/firmware.js, slopkit's slopkit/main.js, and umtx2's
-     document/en/ps5/main.js. */
-  var UMTX2_FIRMWARES = ["1.00", "1.01", "1.02", "1.05", "1.10", "1.11", "1.12", "1.13", "1.14", "2.00", "2.20", "2.25", "2.26", "2.30", "2.50", "2.70", "3.00", "3.10", "3.20", "3.21", "4.00", "4.02", "4.03", "4.50", "4.51", "5.00", "5.02", "5.10", "5.50"];
-  var POOPS_FIRMWARES = ["7.00", "7.01", "7.20", "7.40", "7.60", "7.61", "8.00", "8.20", "8.40", "8.60", "9.00", "9.05", "9.20", "9.40", "9.60", "10.00", "10.01", "10.20", "10.40", "10.60", "11.00", "11.20", "11.40", "11.60", "12.00"];
-  var RELAPSE_FIRMWARES = ["7.00", "7.01", "7.20", "7.40", "7.60", "7.61", "8.00", "8.20", "8.40", "8.60", "9.00", "9.20", "9.40", "9.60", "10.00", "10.01", "10.20", "10.40", "10.60", "11.00", "11.20", "11.60", "12.00", "12.02", "12.20", "12.40", "12.60", "12.70", "13.00", "13.20", "13.40", "13.42", "13.60"];
+  /* Firmware support definitions:
+     - <= 5.50: umtx2
+     - 7.00 - 12.00: poops
+     - 7.00 - 13.60 (except 9.05, 11.40): relapse */
+  function isUmtx2Supported(num) {
+    var n = typeof num === 'number' ? num : parseFloat(num);
+    return n > 0 && n <= 5.50;
+  }
+
+  function isPoopsSupported(num) {
+    var n = typeof num === 'number' ? num : parseFloat(num);
+    return n >= 7.00 && n <= 12.00;
+  }
+
+  function isRelapseSupported(num, str) {
+    var n = typeof num === 'number' ? num : parseFloat(num);
+    var s = str || (typeof num === 'string' ? num : '');
+    var isExcluded = (s === '9.05' || s === '11.40' ||
+                      Math.abs(n - 9.05) < 0.001 || Math.abs(n - 11.40) < 0.001);
+    return n >= 7.00 && n <= 13.60 && !isExcluded;
+  }
 
   var UMTX2_URL =
     'umtx2/index.html?autoload=payload.elf&v=1';
@@ -123,10 +127,10 @@
       uiLog('[ERROR] Not a PlayStation 5 browser.', 'error');
       return null;
     }
-    if (UMTX2_FIRMWARES.indexOf(fw.str) !== -1) return 'umtx2';
+    if (isUmtx2Supported(fw.num)) return 'umtx2';
 
-    var hasPoops = POOPS_FIRMWARES.indexOf(fw.str) !== -1;
-    var hasRelapse = RELAPSE_FIRMWARES.indexOf(fw.str) !== -1;
+    var hasPoops = isPoopsSupported(fw.num);
+    var hasRelapse = isRelapseSupported(fw.num, fw.str);
 
     if (hasPoops && hasRelapse) {
       var stored = null;
@@ -152,17 +156,8 @@
     if (hasPoops) return 'poops';
 
     uiLog('[ERROR] Unsupported firmware ' + fw.str +
-      ' (supported: 1.00-5.50 via umtx2, 7.00-12.00 via poops/relapse, 12.02-13.60 via relapse).', 'error');
+      ' (supported: 1.00-5.50 via umtx2, 7.00-12.00 via poops, 7.00-13.60 via relapse).', 'error');
     return null;
-  }
-
-
-  function revealExploit() {
-    splashEl.classList.add('hide');
-    setTimeout(function () {
-      splashEl.hidden = true;
-      requestAnimationFrame(scrollLogToBottom);
-    }, 480);
   }
 
   function onAutoloadResult(data) {
@@ -459,6 +454,11 @@
   }
 
   function start() {
+    if (!exploitEl) exploitEl = document.getElementById('exploit');
+    if (!logContainer) logContainer = document.getElementById('logContainer');
+    if (!progressBar) progressBar = document.getElementById('progressBar');
+    if (!progressLabel) progressLabel = document.getElementById('progressLabel');
+
     uiLog('WebKit Autoloader by PLK', 'success');
     updateProgress(0, 'Waiting to start...');
 
@@ -514,10 +514,11 @@
     try {
       exploitEl.src = exploitUrl;
     } catch (e) { }
-
-    setTimeout(revealExploit, 1500);
   }
 
-
-  window.addEventListener('load', start);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
 })();

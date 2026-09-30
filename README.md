@@ -121,10 +121,11 @@ The technical internals and project architecture are documented in **[ARCHITECTU
 
 * **[idlesauce](https://github.com/idlesauce)** & contributors — [umtx2](https://github.com/idlesauce/umtx2)
 * **[jordyidk](https://github.com/jordyidk)** & contributors — [slopkit (Poops)](https://github.com/jordyidk/slopkit)
-* **[soniciso1](https://github.com/soniciso1)** — bringing down Poops support to lower firmwares (7.00–8.60)
+* **[soniciso1](https://github.com/soniciso1)** — [Relapse](https://github.com/soniciso1/relapse), bringing down Poops support to lower firmwares (7.00–8.60)
 * **[ntfargo](https://github.com/ntfargo)** & contributors — [Relapse](https://github.com/ntfargo/Relapse-Exploit)
+* **[ufm42](https://github.com/ufm42)** - [kexp](https://github.com/ufm42/kexp)
 * **[john-tornblom](https://github.com/john-tornblom)** — [ps5-payload-sdk](https://github.com/ps5-payload-dev/sdk/) and [elfldr](https://github.com/ps5-payload-dev/elfldr)
-* **[Mark Adler](https://github.com/madler)** — [puff.c](https://github.com/madler/zlib/tree/master/contrib/puff) (used to decompress embedded frontend files)
+* **[madler](https://github.com/madler)** — [puff](https://github.com/madler/zlib/tree/master/contrib/puff)
 * Everyone else contributing to the PS5 homebrew scene.
 
 

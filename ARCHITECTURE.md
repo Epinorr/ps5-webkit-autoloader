@@ -45,10 +45,11 @@ instead of the unified-autoloader — so this flow installs the homescreen app.
 
 ## Frontend (`frontend/autoloader/`)
 
-- A splash screen, a log terminal and a progress bar. The exploit runs in a **hidden**
+- A log terminal and a progress bar. The exploit runs in a **hidden**
   same-origin iframe. On load, `app.js` picks the chain from the firmware in
-  the user-agent (`PlayStation 5/x.xx`): **umtx2** for 1.00–5.50, the user's installed
-  choice (**poops** or **relapse**) for 7.00–12.00, and **relapse** for 12.02–13.60.
+  the user-agent (`PlayStation 5/x.xx`): **umtx2** for <=5.50, **poops** for 7.00–12.00,
+  and **relapse** for 7.00–13.60 (except 9.05 and 11.40). On dual-compatible firmwares,
+  the user's installed choice is loaded (defaulting to relapse).
   The iframe element is `display: none`; its document still runs the chain and sends
   log and completion messages to the parent.
 - A `FORCE_EXPLOIT` build-time override (`auto | umtx2 | poops | relapse`; or a `?force=`
@@ -56,8 +57,8 @@ instead of the unified-autoloader — so this flow installs the homescreen app.
   exploit's own firmware guard still applies.
 - umtx2 auto-runs its chain via the `on_load_autorun` sessionStorage key (set by
   `app.js` before arming); poops and relapse auto-run on load from their query parameters.
-- On `window.load` the iframe is armed; at script parse it is blanked to `about:blank` so a
-  WebProcess-crash page restore never auto-runs the chain.
+- The exploit iframe is armed immediately on page load without any delay, so the
+  chain's log streams directly into the loader UI.
 - `app.js` mirrors each chain's console log and receives the `?autoload` result
   via `postMessage`. Relapse milestones advance the progress bar, while Poops stages
   advance progress correspondingly.
@@ -104,7 +105,7 @@ cache against a user closing the browser mid-download:
   at a fully-cached directory.
 
 Because the exploit iframe URLs, `payloads/`, `shared/`, relapse's `../../` paths and the app
-entry page's own `style.css`/`app.js`/`logo.svg`/`favicon.svg` references are all relative
+entry page's own `style.css`/`app.js`/`favicon.svg` references are all relative
 (never `/app/...` absolute), `app.js`, the exploit patches and the app pages are untouched by
 the versioned layout and resolve correctly under `/app/<version>/`, on the PC host and in the
 dev server.

@@ -276,6 +276,11 @@
       outline: none;
     }
 
+    .choice-card.selected {
+      border-color: rgba(56, 189, 248, 0.4);
+      background-color: rgba(56, 189, 248, 0.05);
+    }
+
     .choice-card:hover,
     .choice-card:focus {
       border-color: #38bdf8;
@@ -283,6 +288,12 @@
       -webkit-transform: translateY(-2px);
       transform: translateY(-2px);
       box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.4);
+    }
+
+    .choice-card:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
     }
 
     .choice-card .choice-title {
@@ -330,7 +341,7 @@
         </button>
         <button type="button" class="choice-card" id="btnRelapse">
           <div class="choice-title">Relapse</div>
-          <div class="choice-fw">FW 7.00 &ndash; 13.60</div>
+          <div class="choice-fw">FW 7.00 &ndash; 13.60 (except 9.05, 11.40)</div>
           <div class="choice-desc">Requires an active network interface (Wi-Fi or Ethernet). Internet access is not required.</div>
         </button>
       </div>
@@ -385,18 +396,43 @@
         simulateCorrupt = params.get('simulate') === 'corrupt';
       })();
 
-      var POOPS_FIRMWARES = ["7.00", "7.01", "7.20", "7.40", "7.60", "7.61", "8.00", "8.20", "8.40", "8.60", "9.00", "9.05", "9.20", "9.40", "9.60", "10.00", "10.01", "10.20", "10.40", "10.60", "11.00", "11.20", "11.40", "11.60", "12.00"];
-      var RELAPSE_FIRMWARES = ["7.00", "7.01", "7.20", "7.40", "7.60", "7.61", "8.00", "8.20", "8.40", "8.60", "9.00", "9.20", "9.40", "9.60", "10.00", "10.01", "10.20", "10.40", "10.60", "11.00", "11.20", "11.60", "12.00", "12.02", "12.20", "12.40", "12.60", "12.70", "13.00", "13.20", "13.40", "13.42", "13.60"];
+      /* Firmware support definitions:
+         - <= 5.50: umtx2
+         - 7.00 - 12.00: poops
+         - 7.00 - 13.60 (except 9.05, 11.40): relapse */
+      function isUmtx2Supported(num) {
+        var n = typeof num === 'number' ? num : parseFloat(num);
+        return n > 0 && n <= 5.50;
+      }
+
+      function isPoopsSupported(num) {
+        var n = typeof num === 'number' ? num : parseFloat(num);
+        return n >= 7.00 && n <= 12.00;
+      }
+
+      function isRelapseSupported(num, str) {
+        var n = typeof num === 'number' ? num : parseFloat(num);
+        var s = str || (typeof num === 'string' ? num : '');
+        var isExcluded = (s === '9.05' || s === '11.40' ||
+                          Math.abs(n - 9.05) < 0.001 || Math.abs(n - 11.40) < 0.001);
+        return n >= 7.00 && n <= 13.60 && !isExcluded;
+      }
 
       var fw = detectFirmware();
       var fwStr = fw ? fw.str : fwParam;
       var fwNum = fw ? fw.num : (fwParam ? parseFloat(fwParam) : 0);
-      var hasPoops = fwStr ? (POOPS_FIRMWARES.indexOf(fwStr) !== -1) : (fwNum >= 7.00 && fwNum <= 12.00);
-      var hasRelapse = fwStr ? (RELAPSE_FIRMWARES.indexOf(fwStr) !== -1) : (fwNum >= 7.00 && fwNum <= 13.60);
-      var isDualSupported = (hasPoops && hasRelapse) || (!fw && !fwParam && !chosenExploit);
+      var hasUmtx2 = isUmtx2Supported(fwNum);
+      var hasPoops = isPoopsSupported(fwNum);
+      var hasRelapse = isRelapseSupported(fwNum, fwStr);
+      var isUnsupported = fwNum > 0 && !hasUmtx2 && !hasPoops && !hasRelapse;
+      var isDualSupported = (hasPoops && hasRelapse) || (!fw && !fwParam);
       var needsChoice = isDualSupported && !chosenExploit;
 
       function chooseExploit(choice) {
+        if (btnPoops) btnPoops.disabled = true;
+        if (btnRelapse) btnRelapse.disabled = true;
+        statusEl.textContent = 'Selected ' + (choice === 'poops' ? 'Poops' : 'Relapse') + '...';
+        detailEl.textContent = 'Preparing cache download...';
         try {
           localStorage.setItem('wkal_exploit', choice);
         } catch (e) { }
@@ -416,12 +452,11 @@
         });
       }
 
-
       var logContainer = document.getElementById('logContainer');
       var seenLogs = "";
 
       function appendLog(msg) {
-        if (needsChoice) return;
+        if (needsChoice || isUnsupported) return;
         logContainer.hidden = false;
         var div = document.createElement('div');
         div.textContent = msg;
@@ -434,7 +469,7 @@
       var logXhr = null;
 
       function pollLogs() {
-        if (needsChoice) return;
+        if (needsChoice || isUnsupported) return;
         logXhr = new XMLHttpRequest();
         logXhr.open('GET', '/logs?pos=' + logPos, true);
         logXhr.onreadystatechange = function () {
@@ -462,8 +497,8 @@
         };
         logXhr.send();
       }
-      // Start the long-polling loop only when not on exploit selection
-      if (!needsChoice) {
+      // Start the long-polling loop only when caching (not on choice, not on unsupported)
+      if (!needsChoice && !isUnsupported) {
         pollLogs();
       }
 
@@ -679,25 +714,43 @@
           detailEl.appendChild(document.createTextNode('Select which one to install:'));
           choiceContainer.hidden = false;
           logContainer.hidden = true;
-          if (btnPoops) btnPoops.focus();
+          var storedPref = '';
+          try { storedPref = localStorage.getItem('wkal_exploit'); } catch (e) { }
+          if (storedPref === 'relapse' && btnRelapse) {
+            btnRelapse.classList.add('selected');
+            btnRelapse.focus();
+          } else if (storedPref === 'poops' && btnPoops) {
+            btnPoops.classList.add('selected');
+            btnPoops.focus();
+          } else if (btnPoops) {
+            btnPoops.focus();
+          }
           return;
         }
 
-        if (chosenExploit) {
-          try {
-            localStorage.setItem('wkal_exploit', chosenExploit);
-          } catch (e) { }
+        if (isUnsupported) {
+          statusEl.textContent = 'Unsupported firmware';
+          statusEl.style.color = '#ef4444';
+          var fwDisplay = fw ? ('Firmware ' + fw.str) : (fwParam ? ('Firmware ' + fwParam) : 'Your firmware');
+          detailEl.textContent = fwDisplay + ' is not supported (supported: 1.00–5.50 via umtx2, 7.00–12.00 via poops, 7.00–13.60 via relapse).';
+          return;
+        }
+
+        var effectiveExploit = '';
+        if (hasUmtx2) {
+          effectiveExploit = 'umtx2';
         } else if (hasPoops && !hasRelapse) {
+          effectiveExploit = 'poops';
+        } else if (hasRelapse && !hasPoops) {
+          effectiveExploit = 'relapse';
+        } else if (hasPoops && hasRelapse) {
+          effectiveExploit = (chosenExploit === 'poops') ? 'poops' : 'relapse';
+        } else if (chosenExploit) {
+          effectiveExploit = chosenExploit;
+        }
+        if (effectiveExploit) {
           try {
-            localStorage.setItem('wkal_exploit', 'poops');
-          } catch (e) { }
-        } else if ((hasRelapse && !hasPoops) || fwNum > 12.00) {
-          try {
-            localStorage.setItem('wkal_exploit', 'relapse');
-          } catch (e) { }
-        } else if (fwNum > 0 && fwNum <= 5.50) {
-          try {
-            localStorage.setItem('wkal_exploit', 'umtx2');
+            localStorage.setItem('wkal_exploit', effectiveExploit);
           } catch (e) { }
         }
 

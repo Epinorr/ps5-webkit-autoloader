@@ -50,6 +50,54 @@ static const FileEntry *registry_lookup(const char *url) {
     return file_registry_find(url);
 }
 
+static inline int is_fw_umtx2(float fw) {
+    return fw > 0.0f && fw <= 5.50f;
+}
+
+static inline int is_fw_poops(float fw) {
+    return fw >= 7.00f && fw <= 12.00f;
+}
+
+static inline int is_fw_relapse(float fw, const char *fw_str) {
+    if (fw < 7.00f || fw > 13.60f) return 0;
+    if (fw_str && (strcmp(fw_str, "9.05") == 0 || strcmp(fw_str, "11.40") == 0)) return 0;
+    if ((fw >= 9.049f && fw <= 9.051f) || (fw >= 11.399f && fw <= 11.401f)) return 0;
+    return 1;
+}
+
+static const char *resolve_exploit(float fw, const char *fw_str, const char *preferred) {
+    if (strcmp(WKALI_FORCE_EXPLOIT, "auto") != 0) {
+        return WKALI_FORCE_EXPLOIT;
+    }
+    int has_umtx2 = is_fw_umtx2(fw);
+    int has_poops = is_fw_poops(fw);
+    int has_relapse = is_fw_relapse(fw, fw_str);
+
+    if (has_umtx2) {
+        return "umtx2";
+    }
+    if (has_poops && has_relapse) {
+        if (preferred && strcmp(preferred, "poops") == 0) return "poops";
+        return "relapse"; /* default to relapse on dual firmwares */
+    }
+    if (has_poops) {
+        return "poops";
+    }
+    if (has_relapse) {
+        return "relapse";
+    }
+    /* Fallback for desktop testing / unknown fw (fw == 0) */
+    if (fw == 0.0f) {
+        if (preferred && (strcmp(preferred, "poops") == 0 ||
+                          strcmp(preferred, "relapse") == 0 ||
+                          strcmp(preferred, "umtx2") == 0)) {
+            return preferred;
+        }
+        return "relapse";
+    }
+    return NULL;
+}
+
 enum MHD_Result http_on_request(void *cls, struct MHD_Connection *conn,
                                 const char *url, const char *method,
                                 const char *version, const char *upload_data,
@@ -192,9 +240,9 @@ enum MHD_Result http_on_request(void *cls, struct MHD_Connection *conn,
         }
     } else if (strcmp(url, "/selected_exploit") == 0 ||
                (strlen(url) >= 17 && strcmp(url + strlen(url) - 17, "/selected_exploit") == 0)) {
-        const char *sel = exploit_arg ? exploit_arg :
-                          (active_exploit[0] ? active_exploit :
-                          (fw > 0.0f && fw <= 5.50f ? "umtx2" : "relapse"));
+        const char *preferred = exploit_arg ? exploit_arg : (active_exploit[0] ? active_exploit : NULL);
+        const char *sel = resolve_exploit(fw, fw_str, preferred);
+        if (!sel) sel = "unsupported";
         resp = MHD_create_response_from_buffer(strlen(sel), (void *)sel,
                                                MHD_RESPMEM_PERSISTENT);
         MHD_add_response_header(resp, "Content-Type", "text/plain");
@@ -248,18 +296,19 @@ enum MHD_Result http_on_request(void *cls, struct MHD_Connection *conn,
                 mem_mode = MHD_RESPMEM_MUST_FREE;
             }
 
-            /* When on firmware supported by both Poops and Relapse (7.00 - 12.00),
+            /* When on firmware supported by both Poops and Relapse (7.00 - 12.00 except 9.05/11.40),
                the installer page must ask the user which exploit to install BEFORE
                proceeding with caching. If no exploit has been chosen yet, strip
                manifest="..." from index.html so WebKit does NOT start caching.
-               Note: 9.05 and 11.40 are supported ONLY by Poops (not Relapse). */
-            int is_poops_only = (strcmp(fw_str, "9.05") == 0 || strcmp(fw_str, "11.40") == 0);
-            int is_dual_fw = (!is_poops_only && fw >= 7.00f && fw <= 12.00f) ||
+               Also strip manifest on unsupported firmwares so WebKit never starts caching. */
+            int is_unsupported = (fw > 0.0f && !is_fw_umtx2(fw) && !is_fw_poops(fw) && !is_fw_relapse(fw, fw_str));
+            int is_dual_fw = (is_fw_poops(fw) && is_fw_relapse(fw, fw_str)) ||
                              (fw == 0.0f && strcmp(WKALI_FORCE_EXPLOIT, "auto") == 0);
             int prompt_user = (strcmp(WKALI_FORCE_EXPLOIT, "auto") == 0) && is_dual_fw &&
                               (exploit_arg == NULL) && (active_exploit[0] == '\0');
 
-            if ((strcmp(url, ROUTE_INDEX) == 0 || strcmp(url, ROUTE_INDEX_HTML) == 0) && prompt_user) {
+            if ((strcmp(url, ROUTE_INDEX) == 0 || strcmp(url, ROUTE_INDEX_HTML) == 0) &&
+                (prompt_user || is_unsupported)) {
                 char *copy = malloc(payload_size + 1);
                 if (copy) {
                     memcpy(copy, payload, payload_size);
@@ -279,19 +328,22 @@ enum MHD_Result http_on_request(void *cls, struct MHD_Connection *conn,
 
             /* Dynamically strip incompatible exploit files from the cache manifest */
             if (strcmp(url, ROUTE_CACHE_MANIFEST) == 0) {
-                const char *chosen = NULL;
-                if (strcmp(WKALI_FORCE_EXPLOIT, "auto") != 0) {
-                    chosen = WKALI_FORCE_EXPLOIT;
-                } else if (exploit_arg) {
-                    chosen = exploit_arg;
-                } else if (active_exploit[0] != '\0') {
-                    chosen = active_exploit;
-                } else if (fw > 0.0f && fw <= 5.50f) {
-                    chosen = "umtx2";
-                } else if (fw > 12.00f) {
-                    chosen = "relapse";
-                } else {
-                    chosen = "relapse";
+                const char *preferred = exploit_arg ? exploit_arg : (active_exploit[0] ? active_exploit : NULL);
+                const char *chosen = resolve_exploit(fw, fw_str, preferred);
+
+                if (!chosen) {
+                    wkali_log("[WKALI] AppCache manifest: unsupported firmware, refusing to cache\n");
+                    const char *not_found = "404 Unsupported Firmware\n";
+                    if (mem_mode == MHD_RESPMEM_MUST_FREE) free(payload);
+                    resp = MHD_create_response_from_buffer(strlen(not_found),
+                                                           (void *)not_found,
+                                                           MHD_RESPMEM_PERSISTENT);
+                    MHD_add_response_header(resp, "Content-Type", "text/plain");
+                    http_status = MHD_HTTP_NOT_FOUND;
+                    add_cors_headers(resp);
+                    enum MHD_Result ret = MHD_queue_response(conn, http_status, resp);
+                    MHD_destroy_response(resp);
+                    return ret;
                 }
 
                 wkali_log("[WKALI] AppCache manifest: caching %s exploit\n", chosen);
