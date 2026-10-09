@@ -95,9 +95,17 @@ body::before {
   width: 65.6%;
   height: 57.6%;
   max-width: 976px;
-  background: rgba(5, 7, 13, 0.94);
-  border: 1px solid #1e3a5f;
+
+  /* Glass panel: keep the wallpaper visible while preserving log contrast. */
+  background: rgba(3, 8, 20, 0.54);
+  border: 1px solid rgba(96, 190, 255, 0.42);
   border-radius: 8px;
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+
   overflow-y: auto;
   font-family: "SFMono-Regular", Menlo, Monaco, "Cascadia Mono", monospace;
   font-size: 0.84rem;
@@ -106,7 +114,8 @@ body::before {
 }
 
 #console {
-  color: #94a3b8;
+  color: #dbeafe;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
   overflow-wrap: break-word;
   word-break: break-word;
 }
@@ -117,7 +126,7 @@ body::before {
 }
 
 #console .log-info, #console .log-setup, #console .log-star, #console .log-log, #console .log-cyan {
-  color: #94a3b8;
+  color: #dbeafe;
 }
 
 #console .log-success, #console .log-plus {
@@ -138,9 +147,16 @@ body::before {
   max-width: 976px;
   height: 2.4rem;
   margin-top: 1.4rem;
-  background: #1b2436;
-  border: 1px solid #2c3e5a;
+
+  /* Matching translucent glass surface for the progress indicator. */
+  background: rgba(15, 23, 42, 0.58);
+  border: 1px solid rgba(96, 190, 255, 0.4);
   border-radius: 8px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   overflow: hidden;
 }
 
