@@ -23,17 +23,10 @@
   var bar = element('div', 'progressBar', progress);
   var label = element('div', 'progressLabel', progress);
   var config = window.WKAL_PAGE || {};
-  if (config.version) {
-    document.title = 'WebKit Autoloader v' + config.version + ' by PLK' +
-      (config.buildTime ? ' (built ' + config.buildTime + ')' : '');
-  }
-  var footer = element('div', 'footer', document.body);
-  element('div', 'buildInfo', footer, 'WebKit Autoloader' +
-    (config.version ? ' v' + config.version : '') + ' by PLK' +
-    (config.buildTime ? ' (built ' + config.buildTime + ')' : ''));
-  var source = element('div', 'sourceInfo', footer, 'This project is free and open source: ');
-  var link = element('a', 'sourceLink', source, 'github.com/itsPLK/ps5-webkit-autoloader');
-  link.href = 'https://github.com/itsPLK/ps5-webkit-autoloader';
+  // Branding only: set the browser/tab title without adding footer UI.
+  document.title = 'WebKit Autoloader' +
+    (config.version ? ' v' + config.version : '') + ' by EPINOR' +
+    (config.buildTime ? ' (built ' + config.buildTime + ')' : '');
 
   var percent = 0;
   var finished = false;
